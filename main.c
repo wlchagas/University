@@ -7,7 +7,7 @@
 
 int sW=600,sH=600,start=0,angx=-40,angy=45,angz=0,left_arm=0,left_darm=0,right_arm=0,right_darm=0;
 int left_leg=0,left_dleg=0;right_leg=0,right_dleg=0,swapleg=0,spl=0,spr=0,walkComp=0,flagcamera=0,dw=0;
-float sceneX=0.0,sceneY=0.0,sceneZ=0.0;
+float sceneX=0.0,sceneY=0.0,sceneZ=0.0,wob,hob;
 
 void drawCharacter(){
     glColor3f(1.0,0.0,0.0);
@@ -79,6 +79,7 @@ void drawCharacter(){
                     glTranslatef(0.0,0.0,0.2);
                     glScalef(0.9,0.9,0.9);
                     glRotatef(-90,1.0,0.0,0.0);
+                    glRotatef(-90,0.0,1.0,0.0);
                     glPushMatrix(); // PALM
                         glScalef(0.95,1.0,0.5);
                         glutSolidSphere(0.04,25,25);
@@ -167,7 +168,7 @@ void drawCharacter(){
                     glColor3f(1.0,0.0,1.0);
                     glTranslatef(0.0,0.0,0.2);
                     glRotatef(-90,1.0,0.0,0.0);
-                    glRotatef(180,0.0,1.0,0.0);
+                    glRotatef(270,0.0,1.0,0.0);
                     glScalef(0.9,0.9,0.9);
                     glPushMatrix(); // PALM
                         glScalef(0.95,1.0,0.5);
@@ -328,12 +329,13 @@ void correctScene(){
 
 void animate(){
     if(start == 1){
-        if( sceneX < 0.17 ){
+        if( sceneX < 0.16 ){
             if(dw == 1){
                 sceneX += 0.001;
                 sceneZ += 0.004;
             }
         } else swapleg = 2;
+
 
         if(left_leg == 0 && right_leg == 0 ){
             if(swapleg == 0){
@@ -346,43 +348,70 @@ void animate(){
             spl = 0;
             spr = 0;
             dw = 0;
-        } else if ( right_leg == 0 && left_leg < 90 && spl == 0){
+        } else if ( right_leg <= 0 && left_leg < 90 && spl == 0){
             left_leg++;
             left_dleg--;
-            right_arm = (3*left_leg)/8;
-            right_darm = (3*right_arm)/8;
-        } else if ( left_leg == 0 && right_leg < 90 && spr == 0){
+            if(left_leg >= 0){
+                right_arm = (3*left_leg)/8;
+                right_darm = (3*right_arm)/8;
+            }
+        } else if ( left_leg <= 0 && right_leg < 90 && spr == 0){
             right_leg++;
             right_dleg--;
-            left_arm = (3*right_leg)/8;
-            left_darm = (3*left_arm)/8;
-        } else if ( (right_leg == 0 && left_leg >= 90) || spl == 1){
+            if(right_leg >= 0){
+                left_arm = (3*right_leg)/8;
+                left_darm = (3*left_arm)/8;
+            }
+        } else if ( (right_leg <= 0 && left_leg >= 90) || spl == 1){
             left_leg--;
-            left_dleg++;
-            right_arm = (3*left_leg)/8;
-            right_darm = (3*right_arm)/8;
+            if(-left_leg == left_dleg){
+                left_dleg++;
+            }else left_dleg += 2;
+            if(left_leg%5 == 0){
+                right_leg--;
+                right_dleg--;
+            }
+            if(left_leg >= 0){
+                right_arm = (3*left_leg)/8;
+                right_darm = (3*right_arm)/8;
+            }
             spl = 1;
             dw = 1;
-        } else if ( (left_leg == 0 && right_leg >= 90) || spr == 1){
+        } else if ( (left_leg <= 0 && right_leg >= 90) || spr == 1){
             right_leg--;
-            right_dleg++;
-            left_arm = (3*right_leg)/8;
-            left_darm = (3*left_arm)/8;
+            if(-right_leg == right_dleg){
+                right_dleg++;
+            }else right_dleg += 2;
+            if(right_leg%5 == 0){
+                left_leg--;
+                left_dleg--;
+            }
+            if(right_leg >= 0){
+                left_arm = (3*right_leg)/8;
+                left_darm = (3*left_arm)/8;
+            }
             spr = 1;
             dw = 1;
         }
+        //printf("%d %d, %d %d\n",right_leg,left_leg,right_dleg,left_dleg);
+        if(dw == 0 && right_leg == 0 && left_leg == 0)
+            start = 0;
+        glutPostRedisplay();
     }
-
-    if(dw == 0 && right_leg == 0 && left_leg == 0)
-        start = 0;
-
-    glutPostRedisplay();
 }
 
 void rotateScene(){
     glRotatef(angx,1.0,0.0,0.0);
     glRotatef(angy,0.0,1.0,0.0);
     glRotatef(angz,0.0,0.0,1.0);
+}
+
+void jobs(){
+
+}
+
+void jobsCorrect(){
+
 }
 
 void Display(void){
@@ -395,14 +424,27 @@ void Display(void){
         drawScene();
         drawCharacter();
         animate();
-        if (swapleg == 2)
-            correctScene();
+        jobs();
     glPopMatrix();
+
+    if (swapleg == 2){
+        correctScene();
+        jobsCorrect();
+    }
 
     glEnable(GL_DEPTH_TEST);
     glutSwapBuffers();
 }
 
+void jumpObstacle(int x, int y){
+    wob = (float)x/(sW/2)-1;
+    hob = (sH-y)/(float)(sH/2)-1;
+    printf("wob = %f, hob = %f\n",wob,hob);
+    glPushMatrix();
+        glTranslatef(wob,hob,0.0);
+        glutSolidSphere(0.1,25,25);
+    glPopMatrix();
+}
 
 void Keyboard (unsigned char key, int x, int y){
     switch (key) {
@@ -436,6 +478,7 @@ void MouseInt (int botao, int estado, int x, int y) {
     switch(botao) {
         case GLUT_LEFT_BUTTON:
             if(estado == GLUT_DOWN)
+                jumpObstacle(x,y);
         break;
     }
     glutPostRedisplay();
