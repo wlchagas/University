@@ -9,8 +9,9 @@ from crt import CRT
 key = "00011100000111000001110000011100000111000001110000111000"
 cipher = "you can write w/e you want"
 
-cryp_ecb = True
-cryp_cbc = True
+cryp_ecb = False
+cryp_cbc = False
+cryp_crt = True
 if(cryp_ecb):
     print('----==== ECB RUNNING ====----')
     ecb = ECB()
@@ -29,6 +30,13 @@ if(cryp_cbc):
     encrypted = cbc.encrypt(cipher,key,IV)
     # print(encrypted)
     decrypted = cbc.decrypt(encrypted,key,IV)
-    print(decrypted)
+    # print(decrypted)
     to_string = cbc.to_string(decrypted)
     print(to_string)
+
+if(cryp_crt):
+    print('----==== CRT RUNNING ====----')
+    counter = [str(randint(0,1)) for _ in range(0,56)]
+    crt = CRT(counter)
+    encrypted = crt.encrypt(cipher,key)
+    

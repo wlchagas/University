@@ -37,13 +37,9 @@ class CBC:
             while(len(block) < 8):
                 block.append(self.__empty_block)
             a = []
-            print('iv = ',IV,', block = ',''.join(block))
             helper = self.__list_xor(IV,''.join(block))
-            i = 0
-            for _ in block:
+            for i in range(0,8):
                 a.append(''.join(self.__encrypter.encrypt_byte(''.join(helper[i:i+8]),key)))
-                i = i + 1
-            # print(a)
             self.__ciphered_blocks.append(a.copy())
             IV = ''.join(a.copy())
             a.clear()
@@ -60,16 +56,18 @@ class CBC:
             return
 
         blocks = [cipher[i:i+64] for i in range(0,len(cipher),64)]
+        
         ciphers = []
         for i in blocks:
             ciphers.append([i[j:j+8] for j in range(0,len(i),8)])
+        
         output = []
+        
         for i in ciphers:
             manip = []
             for j in i:
                 manip.append(''.join(self.__encrypter.decrypt_byte(j,key)))
-                # print(self.to_string(''.join(self.__encrypter.decrypt_byte(j,key))))
-            output.append(''.join(self.__list_xor(IV,''.join(manip))))
+            output.append(''.join(self.__list_xor(''.join(manip),IV)))
             IV = ''.join(i)
             manip.clear()
 

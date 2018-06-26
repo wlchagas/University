@@ -1,7 +1,8 @@
 from sdes import SDES
 
 class CRT:
-    def __init__(self):
+    def __init__(self,counter):
+        self.__counter = ''.join(counter)
         self.__empty_block = '00000000'
         self.__encrypter = SDES()
         self.__ciphered_blocks = []
@@ -18,24 +19,9 @@ class CRT:
         return a
 
     def encrypt(self,cipher,key):
-        print("====> Calling encrypt script for '"+cipher+"' !")
-        if(len(key) != 56):
-            print("--------> not able to encrypt, key does not have 56 bits ! (it has = ",len(key)," bits)")
-            return
-        aux = self.__cipher_to_bin_list(cipher)
-        blocks = [aux[i:i+8] for i in range(0,len(aux),8)]
-        for block in blocks:
-            while(len(block) < 8):
-                block.append(self.__empty_block)
-            a = []
-            for ciph_block in block:
-                a.append(''.join(self.__encrypter.encrypt_byte(ciph_block,key)))
-            self.__ciphered_blocks.append(a.copy())
-            a.clear()
-        b = []
-        for i in self.__ciphered_blocks:
-            b.append(''.join(i))
-        return ''.join(b)
+        for i in range(0,7):
+            self.__encrypter.encrypt_byte(self.__counter[i:i+8],key)
+        return
 
     def decrypt(self,cipher,key):
         print("====> Calling decrypt script !")
